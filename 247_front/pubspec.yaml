@@ -1,0 +1,50 @@
+name: p_flutter_project
+description: "A new Flutter project for audio recording and file handling."
+publish_to: 'none' # 프로젝트를 pub.dev에 배포하지 않도록 설정
+
+# 버전 정보
+version: 1.0.0+1
+
+# SDK 버전 설정
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+# 의존성 추가
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # iOS 스타일 아이콘 사용을 위한 Cupertino 아이콘 패키지
+  cupertino_icons: ^1.0.8
+
+  # Flutter 앱에서 음성 녹음을 위한 패키지
+  flutter_sound: ^9.8.1
+
+  # 파일 경로 제공을 위한 패키지
+  path_provider: ^2.0.11
+
+  # 권한 요청을 위한 패키지
+  permission_handler: ^10.2.0
+
+  # HTTP 요청을 처리하기 위한 패키지
+  http: ^1.2.0
+
+  # HTTP multipart 요청을 처리하기 위한 패키지
+  http_parser: ^4.0.2
+
+  # 파일 경로를 관리하기 위한 패키지
+  path: ^1.8.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # 린트 규칙을 제공하는 패키지
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # 필요한 경우 추가할 애셋 파일 목록
+  assets:
+  # - assets/audio/   # 오디오 파일 저장 경로가 될 수 있음
