@@ -2,6 +2,7 @@ import logging
 from openai import OpenAI
 from config import Config
 
+'''
 class AudioProcessor:
     def __init__(self):
         self.client = OpenAI(api_key=Config.OPENAI_API_KEY)
@@ -16,3 +17,4 @@ class AudioProcessor:
         except Exception as e:
             logging.error(f"Error occurred while transcribing audio: {e}")
             return None
+        '''

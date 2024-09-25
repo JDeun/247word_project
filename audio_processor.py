@@ -1,36 +1,50 @@
 import whisper
 import logging
+import torch
+import os
+import soundfile as sf
+import librosa
+import traceback
+import numpy as np
 
 class AudioProcessor:
     def __init__(self, model_size="base"):
-        """
-        AudioProcessor 초기화
-        :param model_size: Whisper 모델 크기. 옵션: "tiny", "base", "small", "medium", "large"
-        
-        모델 크기별 특징:
-        - tiny: 가장 작고 빠른 모델. 정확도는 낮지만 리소스 요구 사항이 가장 적음.
-        - base: 적당한 정확도와 속도의 균형. 대부분의 경우에 충분한 성능.
-        - small: base보다 더 나은 정확도, 약간 더 많은 리소스 필요.
-        - medium: 높은 정확도, 더 많은 리소스 필요. 복잡한 오디오에 적합.
-        - large: 가장 정확한 모델. 가장 많은 리소스 필요. 다국어 및 복잡한 오디오에 최적.
-
-        모델 크기가 커질수록:
-        - 정확도 향상
-        - 처리 시간 증가
-        - 필요한 메모리 및 계산 리소스 증가
-        - 다양한 언어 및 악센트에 대한 이해도 향상
-        """
-        self.model = whisper.load_model(model_size)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = whisper.load_model(model_size, device=self.device)
+        logging.info(f"Whisper model loaded on {self.device}")
 
     def transcribe_audio(self, audio_file):
-        """
-        오디오 파일을 텍스트로 변환
-        :param audio_file: 변환할 오디오 파일 경로
-        :return: 변환된 텍스트 또는 오류 발생 시 None
-        """
         try:
-            result = self.model.transcribe(audio_file)
+            logging.info(f"Attempting to transcribe file: {audio_file}")
+            if not os.path.exists(audio_file):
+                raise FileNotFoundError(f"Audio file not found: {audio_file}")
+            
+            logging.info(f"File exists, size: {os.path.getsize(audio_file)} bytes")
+            
+            # 오디오 파일을 읽어서 numpy 배열로 변환
+            audio, sample_rate = sf.read(audio_file)
+            
+            # 스테레오를 모노로 변환 (필요한 경우)
+            if len(audio.shape) > 1:
+                audio = librosa.to_mono(audio.T)
+            
+            # 필요한 경우 샘플 레이트 변환
+            if sample_rate != 16000:
+                logging.info(f"Converting sample rate from {sample_rate} to 16000")
+                audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=16000)
+            
+            # 데이터 타입을 float32로 명시적 변환
+            audio = audio.astype(np.float32)
+            
+            if self.device == "cpu":
+                with torch.no_grad():
+                    result = self.model.transcribe(audio, fp16=False)
+            else:
+                result = self.model.transcribe(audio)
+            
+            logging.info("Transcription completed successfully")
             return result["text"]
         except Exception as e:
-            logging.error(f"Error occurred while transcribing audio: {e}")
+            logging.error(f"Error occurred while transcribing audio: {str(e)}")
+            logging.error(f"Full error: {traceback.format_exc()}")
             return None
